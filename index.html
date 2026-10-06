@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Calculate daily calorie, protein, fat, carbohydrate and fiber targets with Forge Macrometer." />
+  <title>Forge Macrometer | Precision Fitness & Nutrition Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fffbe1',
+              100: '#fff5b8',
+              200: '#ffe871',
+              300: '#ffd52b',
+              400: '#fbbd08',
+              500: '#e19a00',
+              600: '#bb7400',
+              700: '#955102',
+              800: '#7a3f08',
+              900: '#68330d',
+              gold: '#f59e0b',
+              copper: '#ea580c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f17;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Custom Input Range Styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: #1e293b;
+      height: 8px;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+      transition: all 0.15s ease-in-out;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
+    }
+
+    /* Firefox track and thumb */
+    input[type="range"]::-moz-range-track {
+      background: #1e293b;
+      height: 8px;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Hide number spinner arrows for clean input look */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-fire"></i>
+        </div>
+        <div>
+          <h1 class="font-heading font-black text-xl tracking-tight text-white uppercase">FORGE<span class="text-amber-500">MACROMETER</span></h1>
+          <p class="text-xs text-slate-400 font-medium tracking-wide">Precision Fitness & Nutrition Engine</p>
+        </div>
+      </div>
+      
+      <button id="copyBtn" onclick="copySummary()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 px-4 py-2 rounded-xl border border-amber-500/30 hover:border-amber-500/60 transition-all font-semibold text-xs sm:text-sm shadow-md active:scale-95">
+        <i class="fa-regular fa-copy"></i>
+        <span>Copy Targets</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-amber-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+      <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+      <span id="toastMsg" class="text-sm font-medium">Summary copied to clipboard!</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl flex flex-col gap-6">
+        
+        <div class="border-b border-slate-800 pb-4">
+          <h2 class="font-heading text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-amber-500"></i> Body Metrics & Goal
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Adjust sliders or type values directly to instantly calculate targets.</p>
+        </div>
+
+        <!-- Goal Selection Tabs -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Fitness Objective</label>
+          <div class="grid grid-cols-3 gap-2 p-1.5 bg-slate-950 border border-slate-800 rounded-2xl">
+            <button type="button" id="btnFatLoss" onclick="setGoal('deficit')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md">
+              <i class="fa-solid fa-bolt text-xs"></i>
+              <span>Fat Loss</span>
+            </button>
+            <button type="button" id="btnMaintain" onclick="setGoal('maintain')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+              <i class="fa-solid fa-scale-balanced text-xs"></i>
+              <span>Maintain</span>
+            </button>
+            <button type="button" id="btnBulk" onclick="setGoal('bulk')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+              <i class="fa-solid fa-dumbbell text-xs"></i>
+              <span>Bulk</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Weight Control -->
+        <div class="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80">
+          <div class="flex justify-between items-center">
+            <label for="weightInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Weight</label>
+            <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
+              <input type="number" id="weightInput" min="40" max="180" step="0.5" value="80" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <span class="text-xs font-bold text-slate-400">kg</span>
+            </div>
+          </div>
+          <input type="range" id="weightSlider" min="40" max="180" step="0.5" value="80" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>40 kg</span>
+            <span id="weightLbsDisplay" class="text-slate-400 font-sans font-medium">176.0 lbs</span>
+            <span>180 kg</span>
+          </div>
+        </div>
+
+        <!-- Height Control -->
+        <div class="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80">
+          <div class="flex justify-between items-center">
+            <label for="heightInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Height</label>
+            <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
+              <input type="number" id="heightInput" min="120" max="220" step="1" value="175" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <span class="text-xs font-bold text-slate-400">cm</span>
+            </div>
+          </div>
+          <input type="range" id="heightSlider" min="120" max="220" step="1" value="175" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>120 cm</span>
+            <span id="heightFtDisplay" class="text-slate-400 font-sans font-medium">5' 9"</span>
+            <span>220 cm</span>
+          </div>
+        </div>
+
+        <!-- Age Control -->
+        <div class="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80">
+          <div class="flex justify-between items-center">
+            <label for="ageInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Age</label>
+            <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
+              <input type="number" id="ageInput" min="15" max="80" step="1" value="28" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <span class="text-xs font-bold text-slate-400">yrs</span>
+            </div>
+          </div>
+          <input type="range" id="ageSlider" min="15" max="80" step="1" value="28" class="w-full" />
+          <div class="flex justify-between text-[10px] font-mono text-slate-500">
+            <span>15 yrs</span>
+            <span>80 yrs</span>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="lg:col-span-7 space-y-6">
+        
+        <!-- Hero Target Calories Card -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
+          <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/80 pb-6">
+            <div>
+              <span id="goalBadge" class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
+                Fat Loss / Deficit Target
+              </span>
+              <h3 class="font-heading text-2xl sm:text-3xl font-black text-white">Daily Target Calories</h3>
+            </div>
+            
+            <div class="text-left sm:text-right">
+              <div class="flex items-baseline gap-2">
+                <span id="valCalories" class="font-heading font-black text-4xl sm:text-5xl text-amber-400 tracking-tight">1,936</span>
+                <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">kcal / day</span>
+              </div>
+              <span id="formulaNote" class="text-xs text-slate-500 font-mono mt-1 block">Formula: 80kg × 2.2 × 11</span>
+            </div>
+          </div>
+
+          <!-- Macro Proportion Progress Bar -->
+          <div class="mt-6 space-y-2">
+            <div class="flex justify-between text-xs font-semibold text-slate-400">
+              <span>Macronutrient Energy Distribution</span>
+              <span id="totalMacroKcalLabel" class="font-mono text-slate-300">1,936 kcal</span>
+            </div>
+            
+            <div class="h-4 w-full bg-slate-950 rounded-full overflow-hidden flex p-0.5 border border-slate-800">
+              <div id="barProtein" class="h-full bg-rose-500 rounded-l-full transition-all duration-300" style="width: 36%;"></div>
+              <div id="barFat" class="h-full bg-amber-500 transition-all duration-300" style="width: 30%;"></div>
+              <div id="barCarbs" class="h-full bg-emerald-500 rounded-r-full transition-all duration-300" style="width: 34%;"></div>
+            </div>
+
+            <div class="flex justify-between text-[11px] font-medium text-slate-400 pt-1">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Protein (<span id="pctProtein">36%</span>)</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Fat (<span id="pctFat">30%</span>)</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Carbs (<span id="pctCarbs">34%</span>)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          <!-- Protein Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-rose-500/40 transition-all">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Protein
+              </span>
+              <span class="text-[10px] font-mono bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded-md border border-rose-500/20">4 kcal/g</span>
+            </div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="valProtein" class="font-heading font-black text-3xl text-white">176</span>
+              <span class="text-sm font-bold text-slate-400">g</span>
+            </div>
+            <p id="valProteinKcal" class="text-xs font-mono text-slate-500 mt-1">704 kcal</p>
+          </div>
+
+          <!-- Fat Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-amber-500/40 transition-all">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Fat
+              </span>
+              <span class="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-md border border-amber-500/20">9 kcal/g</span>
+            </div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="valFat" class="font-heading font-black text-3xl text-white">65</span>
+              <span class="text-sm font-bold text-slate-400">g</span>
+            </div>
+            <p id="valFatKcal" class="text-xs font-mono text-slate-500 mt-1">581 kcal</p>
+          </div>
+
+          <!-- Carbs Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-emerald-500/40 transition-all">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Carbs
+              </span>
+              <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/20">4 kcal/g</span>
+            </div>
+            <div class="flex items-baseline gap-1.5">
+              <span id="valCarbs" class="font-heading font-black text-3xl text-white">163</span>
+              <span class="text-sm font-bold text-slate-400">g</span>
+            </div>
+            <p id="valCarbsKcal" class="text-xs font-mono text-slate-500 mt-1">651 kcal</p>
+          </div>
+
+        </div>
+
+        <!-- Fiber Benchmark Card -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 font-bold">
+              <i class="fa-solid fa-wheat-awn"></i>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-white">Daily Fiber Target</h4>
+              <p class="text-xs text-slate-400">Based on 14g fiber per 1,000 target calories</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="flex items-baseline gap-1">
+              <span id="valFiber" class="font-heading font-black text-2xl text-teal-400">27</span>
+              <span class="text-xs font-bold text-slate-400">g</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto px-4">
+      <p class="font-medium">Forge Macrometer • Precision Fitness & Nutrition Engine</p>
+    </div>
+  </footer>
+
+  <script>
+    // State Variables
+    let currentGoal = 'deficit'; // Options: 'deficit', 'maintain', 'bulk'
+
+    // DOM Elements References
+    const elements = {
+      // Inputs & Sliders
+      weightInput: document.getElementById('weightInput'),
+      weightSlider: document.getElementById('weightSlider'),
+      weightLbsDisplay: document.getElementById('weightLbsDisplay'),
+
+      heightInput: document.getElementById('heightInput'),
+      heightSlider: document.getElementById('heightSlider'),
+      heightFtDisplay: document.getElementById('heightFtDisplay'),
+
+      ageInput: document.getElementById('ageInput'),
+      ageSlider: document.getElementById('ageSlider'),
+
+      // Goal Buttons
+      btnFatLoss: document.getElementById('btnFatLoss'),
+      btnMaintain: document.getElementById('btnMaintain'),
+      btnBulk: document.getElementById('btnBulk'),
+      goalBadge: document.getElementById('goalBadge'),
+      formulaNote: document.getElementById('formulaNote'),
+
+      // Calculated Values
+      valCalories: document.getElementById('valCalories'),
+      valProtein: document.getElementById('valProtein'),
+      valProteinKcal: document.getElementById('valProteinKcal'),
+      valFat: document.getElementById('valFat'),
+      valFatKcal: document.getElementById('valFatKcal'),
+      valCarbs: document.getElementById('valCarbs'),
+      valCarbsKcal: document.getElementById('valCarbsKcal'),
+      valFiber: document.getElementById('valFiber'),
+
+      // Macro Distribution Bar
+      totalMacroKcalLabel: document.getElementById('totalMacroKcalLabel'),
+      barProtein: document.getElementById('barProtein'),
+      barFat: document.getElementById('barFat'),
+      barCarbs: document.getElementById('barCarbs'),
+      pctProtein: document.getElementById('pctProtein'),
+      pctFat: document.getElementById('pctFat'),
+      pctCarbs: document.getElementById('pctCarbs'),
+
+      // Toast
+      toast: document.getElementById('toast'),
+      toastMsg: document.getElementById('toastMsg')
+    };
+
+    // Initialize Application
+    window.onload = function() {
+      setupEventListeners();
+      calculateTargets();
+    };
+
+    // Event Listener Setup for Bidirectional Sync
+    function setupEventListeners() {
+      // Weight Sync
+      elements.weightSlider.addEventListener('input', (e) => {
+        elements.weightInput.value = e.target.value;
+        calculateTargets();
+      });
+      elements.weightInput.addEventListener('input', (e) => {
+        let val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          val = Math.min(Math.max(val, 40), 180);
+          elements.weightSlider.value = val;
+          calculateTargets();
+        }
+      });
+
+      // Height Sync
+      elements.heightSlider.addEventListener('input', (e) => {
+        elements.heightInput.value = e.target.value;
+        calculateTargets();
+      });
+      elements.heightInput.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value);
+        if (!isNaN(val)) {
+          val = Math.min(Math.max(val, 120), 220);
+          elements.heightSlider.value = val;
+          calculateTargets();
+        }
+      });
+
+      // Age Sync
+      elements.ageSlider.addEventListener('input', (e) => {
+        elements.ageInput.value = e.target.value;
+        calculateTargets();
+      });
+      elements.ageInput.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value);
+        if (!isNaN(val)) {
+          val = Math.min(Math.max(val, 15), 80);
+          elements.ageSlider.value = val;
+          calculateTargets();
+        }
+      });
+    }
+
+    // Goal Selection Switcher
+    function setGoal(goal) {
+      currentGoal = goal;
+
+      // Update button styling
+      const activeClasses = ['bg-gradient-to-r', 'from-amber-500', 'to-orange-500', 'text-slate-950', 'shadow-md'];
+      const inactiveClasses = ['text-slate-400', 'hover:text-white', 'hover:bg-slate-800'];
+
+      [elements.btnFatLoss, elements.btnMaintain, elements.btnBulk].forEach(btn => {
+        btn.classList.remove(...activeClasses);
+        btn.classList.add(...inactiveClasses);
+      });
+
+      if (goal === 'deficit') {
+        elements.btnFatLoss.classList.remove(...inactiveClasses);
+        elements.btnFatLoss.classList.add(...activeClasses);
+        elements.goalBadge.textContent = 'Fat Loss / Deficit Target';
+      } else if (goal === 'maintain') {
+        elements.btnMaintain.classList.remove(...inactiveClasses);
+        elements.btnMaintain.classList.add(...activeClasses);
+        elements.goalBadge.textContent = 'Maintenance Calorie Target';
+      } else if (goal === 'bulk') {
+        elements.btnBulk.classList.remove(...inactiveClasses);
+        elements.btnBulk.classList.add(...activeClasses);
+        elements.goalBadge.textContent = 'Muscle Building / Bulk Target';
+      }
+
+      calculateTargets();
+    }
+
+    // Main Macro Engine Logic
+    function calculateTargets() {
+      const weightKg = parseFloat(elements.weightInput.value) || 80;
+      const heightCm = parseInt(elements.heightInput.value) || 175;
+      const age = parseInt(elements.ageInput.value) || 28;
+
+      // Unit Conversions display
+      const weightLbs = weightKg * 2.2;
+      elements.weightLbsDisplay.textContent = `${weightLbs.toFixed(1)} lbs`;
+
+      const feet = Math.floor(heightCm / 30.48);
+      const inches = Math.round((heightCm % 30.48) / 2.54);
+      elements.heightFtDisplay.textContent = `${feet}' ${inches}"`;
+
+      // 1. Calculate Target Calories based on chosen goal
+      let targetCalories = 0;
+      let formulaText = '';
+
+      if (currentGoal === 'deficit') {
+        targetCalories = weightKg * 2.2 * 11;
+        formulaText = `Formula: ${weightKg}kg × 2.2 × 11`;
+      } else if (currentGoal === 'maintain') {
+        targetCalories = weightKg * 2.2 * 15;
+        formulaText = `Formula: ${weightKg}kg × 2.2 × 15`;
+      } else if (currentGoal === 'bulk') {
+        targetCalories = weightKg * 2.2 * 17;
+        formulaText = `Formula: ${weightKg}kg × 2.2 × 17`;
+      }
+
+      // 2. Total Protein (1g per lb of bodyweight)
+      const proteinGrams = weightKg * 2.2;
+      const proteinCalories = proteinGrams * 4;
+
+      // 3. Total Fat (30% of total target calories)
+      const fatCalories = targetCalories * 0.30;
+      const fatGrams = fatCalories / 9;
+
+      // 4. Total Carbohydrates (Remaining calories / 4)
+      const carbCalories = targetCalories - proteinCalories - fatCalories;
+      const carbGrams = Math.max(0, carbCalories / 4);
+
+      // 5. Daily Fiber (14g per 1000 calories)
+      const fiberGrams = (targetCalories / 1000) * 14;
+
+      // Update UI Text Display
+      elements.valCalories.textContent = Math.round(targetCalories).toLocaleString();
+      elements.formulaNote.textContent = formulaText;
+
+      elements.valProtein.textContent = Math.round(proteinGrams);
+      elements.valProteinKcal.textContent = `${Math.round(proteinCalories).toLocaleString()} kcal`;
+
+      elements.valFat.textContent = Math.round(fatGrams);
+      elements.valFatKcal.textContent = `${Math.round(fatCalories).toLocaleString()} kcal`;
+
+      elements.valCarbs.textContent = Math.round(carbGrams);
+      elements.valCarbsKcal.textContent = `${Math.round(carbCalories).toLocaleString()} kcal`;
+
+      elements.valFiber.textContent = Math.round(fiberGrams);
+
+      // Update Macro Distribution Bar Percentages
+      const pctProt = Math.round((proteinCalories / targetCalories) * 100) || 0;
+      const pctF = Math.round((fatCalories / targetCalories) * 100) || 0;
+      const pctC = Math.round((carbCalories / targetCalories) * 100) || 0;
+
+      elements.barProtein.style.width = `${pctProt}%`;
+      elements.barFat.style.width = `${pctF}%`;
+      elements.barCarbs.style.width = `${pctC}%`;
+
+      elements.pctProtein.textContent = `${pctProt}%`;
+      elements.pctFat.textContent = `${pctF}%`;
+      elements.pctCarbs.textContent = `${pctC}%`;
+      elements.totalMacroKcalLabel.textContent = `${Math.round(targetCalories).toLocaleString()} kcal`;
+    }
+
+    // Copy Summary Helper
+    function copySummary() {
+      const weight = elements.weightInput.value;
+      const height = elements.heightInput.value;
+      const age = elements.ageInput.value;
+
+      const calories = elements.valCalories.textContent;
+      const protein = elements.valProtein.textContent;
+      const fat = elements.valFat.textContent;
+      const carbs = elements.valCarbs.textContent;
+      const fiber = elements.valFiber.textContent;
+
+      const goalTitle = currentGoal === 'deficit' ? 'Fat Loss (Deficit)' : (currentGoal === 'maintain' ? 'Maintenance' : 'Muscle Building (Bulk)');
+
+      const summaryText = 
+`🏋️‍♂️ FORGE MACROMETER TARGETS
+----------------------------------
+• Goal: ${goalTitle}
+• Weight: ${weight} kg (${(weight * 2.2).toFixed(1)} lbs)
+• Height: ${height} cm
+• Age: ${age} years
+
+🔥 DAILY NUTRITION TARGETS:
+• Calories: ${calories} kcal
+• Protein: ${protein} g
+• Fat: ${fat} g
+• Carbs: ${carbs} g
+• Fiber: ${fiber} g
+----------------------------------
+Calculated with Forge Macrometer`;
+
+      // Copy using standard clipboard or iframe fallback
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(summaryText).then(showToast).catch(() => fallbackCopy(summaryText));
+      } else {
+        fallbackCopy(summaryText);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {
+        console.error('Fallback copy failed', err);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function showToast() {
+      elements.toast.classList.remove('translate-y-20', 'opacity-0');
+      elements.toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        elements.toast.classList.remove('translate-y-0', 'opacity-100');
+        elements.toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>

@@ -113,13 +113,77 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+
+    /* Touch controls and responsive layouts */
+    *, *::before, *::after { box-sizing: border-box; }
+    button, input { touch-action: manipulation; }
+    button:focus-visible, input:focus-visible { outline: 2px solid #fbbf24; outline-offset: 4px; }
+    .calculator-layout > *, .results-panel > *, .macro-grid > * { min-width: 0; }
+    #copyBtn { min-height: 44px; }
+    input[type="number"] { min-height: 32px; font-size: 1rem; }
+    input[type="range"] { display: block; height: 44px; margin-block: 0; }
+    @media (max-width: 639px) {
+      .site-header { position: static; }
+      .header-inner { gap: .75rem; padding-block: .75rem; flex-wrap: wrap; }
+      .header-inner > div { gap: .5rem; min-width: 0; }
+      .header-inner > div > div:first-child { width: 32px; height: 32px; flex-shrink: 0; }
+      .header-inner h1 { font-size: 1rem; line-height: 1.3; overflow-wrap: anywhere; }
+      .header-inner h1 > span { display: block; }
+      .header-inner p { display: none; }
+      #copyBtn { padding: .625rem .75rem; font-size: .875rem; flex-shrink: 0; }
+      #copyBtn span { max-width: 5rem; line-height: 1.25; }
+      main { padding: 1rem !important; }
+      .calculator-layout { gap: 1rem; }
+      .metrics-panel { padding: 1rem; gap: 1rem; border-radius: 1.25rem; }
+      .metrics-panel > div:first-child { padding-bottom: .75rem; }
+      .metrics-panel p, .metrics-panel label { font-size: .875rem; line-height: 1.5; }
+      .metrics-panel > .space-y-3 { padding: .75rem; }
+      .metrics-panel > .space-y-3 > div:first-child { flex-wrap: wrap; gap: .5rem; }
+      .metrics-panel > .space-y-3 > div:last-child { font-size: .75rem; }
+      #btnFatLoss, #btnMaintain, #btnBulk { min-height: 52px; font-size: .875rem; padding: .5rem .25rem; }
+      input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -8px; }
+      input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; }
+      .results-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: .75rem; }
+      .results-panel > * { margin-top: 0 !important; }
+      .calorie-card { grid-column: 1 / -1; padding: 1rem; border-radius: 1.25rem; }
+      .calorie-card h3 { font-size: 1.25rem; }
+      .calorie-card > div:nth-child(2) { gap: .75rem; padding-bottom: 1rem; }
+      .calorie-card > div:nth-child(2) > div:last-child > div { flex-wrap: wrap; }
+      #valCalories { font-size: 2.75rem; line-height: 1.1; }
+      #goalBadge { font-size: .75rem; letter-spacing: .025em; }
+      #formulaNote { font-size: .75rem; overflow-wrap: anywhere; }
+      .distribution-heading { flex-wrap: wrap; gap: .25rem .75rem; font-size: .875rem; }
+      .distribution-legend { flex-wrap: wrap; justify-content: flex-start; gap: .5rem 1rem; font-size: .875rem; }
+      .distribution-legend > span { flex-wrap: wrap; gap: .25rem; }
+      .macro-grid { display: contents; }
+      .macro-grid > div { padding: 1rem; }
+      .macro-grid > div > div:first-child { flex-direction: column; align-items: flex-start; gap: .5rem; }
+      .macro-grid > div > div:first-child > span:first-child { font-size: .875rem; letter-spacing: .025em; }
+      .macro-grid > div > div:first-child > span:last-child { font-size: .75rem; }
+      .macro-grid p { font-size: .875rem; color: #94a3b8; }
+      .fiber-card { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: 1rem; }
+      .fiber-card > div:first-child { display: block; }
+      .fiber-card > div:first-child > div:first-child { display: none; }
+      .fiber-card h4 { color: #94a3b8; font-size: .875rem; }
+      .fiber-card p { font-size: .75rem; margin-top: .5rem; }
+      #valFiber { font-size: 1.875rem; }
+      #toast { left: 1rem; right: 1rem; bottom: max(1rem, env(safe-area-inset-bottom)); padding: .75rem 1rem; }
+      footer { padding-block: 1rem !important; }
+    }
+    @media (max-width: 359px) {
+      main { padding-inline: .75rem !important; }
+      .metrics-panel, .calorie-card, .macro-grid > div, .fiber-card { padding: .75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950">
 
   <!-- Top Navigation Header -->
-  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+  <header class="site-header border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-50">
+    <div class="header-inner max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-amber-500/20">
           <i class="fa-solid fa-fire"></i>
@@ -130,7 +194,7 @@
         </div>
       </div>
       
-      <button id="copyBtn" onclick="copySummary()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 px-4 py-2 rounded-xl border border-amber-500/30 hover:border-amber-500/60 transition-all font-semibold text-xs sm:text-sm shadow-md active:scale-95">
+      <button aria-label="Copy nutrition targets" id="copyBtn" onclick="copySummary()" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-amber-300 px-4 py-2 rounded-xl border border-amber-500/30 hover:border-amber-500/60 transition-all font-semibold text-xs sm:text-sm shadow-md active:scale-95">
         <i class="fa-regular fa-copy"></i>
         <span>Copy Targets</span>
       </button>
@@ -140,14 +204,14 @@
   <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
     
     <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-amber-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+    <div role="status" aria-live="polite" id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-amber-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
       <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
       <span id="toastMsg" class="text-sm font-medium">Summary copied to clipboard!</span>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="calculator-layout grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl flex flex-col gap-6">
+      <section class="metrics-panel lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl flex flex-col gap-6">
         
         <div class="border-b border-slate-800 pb-4">
           <h2 class="font-heading text-lg font-bold text-white flex items-center gap-2">
@@ -160,15 +224,15 @@
         <div class="space-y-2">
           <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Fitness Objective</label>
           <div class="grid grid-cols-3 gap-2 p-1.5 bg-slate-950 border border-slate-800 rounded-2xl">
-            <button type="button" id="btnFatLoss" onclick="setGoal('deficit')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md">
+            <button type="button" id="btnFatLoss" aria-pressed="true" onclick="setGoal('deficit')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md">
               <i class="fa-solid fa-bolt text-xs"></i>
               <span>Fat Loss</span>
             </button>
-            <button type="button" id="btnMaintain" onclick="setGoal('maintain')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+            <button type="button" id="btnMaintain" aria-pressed="false" onclick="setGoal('maintain')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
               <i class="fa-solid fa-scale-balanced text-xs"></i>
               <span>Maintain</span>
             </button>
-            <button type="button" id="btnBulk" onclick="setGoal('bulk')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+            <button type="button" id="btnBulk" aria-pressed="false" onclick="setGoal('bulk')" class="py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center flex flex-col sm:flex-row items-center justify-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
               <i class="fa-solid fa-dumbbell text-xs"></i>
               <span>Bulk</span>
             </button>
@@ -180,11 +244,11 @@
           <div class="flex justify-between items-center">
             <label for="weightInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Weight</label>
             <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
-              <input type="number" id="weightInput" min="40" max="180" step="0.5" value="80" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <input type="number" id="weightInput" inputmode="decimal" min="40" max="180" step="0.5" value="80" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
               <span class="text-xs font-bold text-slate-400">kg</span>
             </div>
           </div>
-          <input type="range" id="weightSlider" min="40" max="180" step="0.5" value="80" class="w-full" />
+          <input type="range" id="weightSlider" aria-label="Weight in kilograms" min="40" max="180" step="0.5" value="80" class="w-full" />
           <div class="flex justify-between text-[10px] font-mono text-slate-500">
             <span>40 kg</span>
             <span id="weightLbsDisplay" class="text-slate-400 font-sans font-medium">176.0 lbs</span>
@@ -197,11 +261,11 @@
           <div class="flex justify-between items-center">
             <label for="heightInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Height</label>
             <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
-              <input type="number" id="heightInput" min="120" max="220" step="1" value="175" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <input type="number" id="heightInput" inputmode="numeric" min="120" max="220" step="1" value="175" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
               <span class="text-xs font-bold text-slate-400">cm</span>
             </div>
           </div>
-          <input type="range" id="heightSlider" min="120" max="220" step="1" value="175" class="w-full" />
+          <input type="range" id="heightSlider" aria-label="Height in centimeters" min="120" max="220" step="1" value="175" class="w-full" />
           <div class="flex justify-between text-[10px] font-mono text-slate-500">
             <span>120 cm</span>
             <span id="heightFtDisplay" class="text-slate-400 font-sans font-medium">5' 9"</span>
@@ -214,11 +278,11 @@
           <div class="flex justify-between items-center">
             <label for="ageInput" class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Age</label>
             <div class="flex items-center gap-1 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 focus-within:border-amber-500 transition-colors">
-              <input type="number" id="ageInput" min="15" max="80" step="1" value="28" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
+              <input type="number" id="ageInput" inputmode="numeric" min="15" max="80" step="1" value="28" class="w-16 bg-transparent text-right font-mono font-bold text-amber-400 text-base focus:outline-none" />
               <span class="text-xs font-bold text-slate-400">yrs</span>
             </div>
           </div>
-          <input type="range" id="ageSlider" min="15" max="80" step="1" value="28" class="w-full" />
+          <input type="range" id="ageSlider" aria-label="Age in years" min="15" max="80" step="1" value="28" class="w-full" />
           <div class="flex justify-between text-[10px] font-mono text-slate-500">
             <span>15 yrs</span>
             <span>80 yrs</span>
@@ -227,10 +291,10 @@
 
       </section>
 
-      <section class="lg:col-span-7 space-y-6">
+      <section class="results-panel lg:col-span-7 space-y-6">
         
         <!-- Hero Target Calories Card -->
-        <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
+        <div class="calorie-card relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
           <div class="absolute -right-12 -top-12 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800/80 pb-6">
@@ -252,8 +316,8 @@
 
           <!-- Macro Proportion Progress Bar -->
           <div class="mt-6 space-y-2">
-            <div class="flex justify-between text-xs font-semibold text-slate-400">
-              <span>Macronutrient Energy Distribution</span>
+            <div class="distribution-heading flex justify-between text-xs font-semibold text-slate-400">
+              <span>Macro distribution</span>
               <span id="totalMacroKcalLabel" class="font-mono text-slate-300">1,936 kcal</span>
             </div>
             
@@ -263,7 +327,7 @@
               <div id="barCarbs" class="h-full bg-emerald-500 rounded-r-full transition-all duration-300" style="width: 34%;"></div>
             </div>
 
-            <div class="flex justify-between text-[11px] font-medium text-slate-400 pt-1">
+            <div class="distribution-legend flex justify-between text-[11px] font-medium text-slate-400 pt-1">
               <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Protein (<span id="pctProtein">36%</span>)</span>
               <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Fat (<span id="pctFat">30%</span>)</span>
               <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Carbs (<span id="pctCarbs">34%</span>)</span>
@@ -271,7 +335,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="macro-grid grid grid-cols-1 sm:grid-cols-3 gap-4">
           
           <!-- Protein Card -->
           <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-rose-500/40 transition-all">
@@ -321,7 +385,7 @@
         </div>
 
         <!-- Fiber Benchmark Card -->
-        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+        <div class="fiber-card bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 font-bold">
               <i class="fa-solid fa-wheat-awn"></i>
@@ -453,6 +517,9 @@
     // Goal Selection Switcher
     function setGoal(goal) {
       currentGoal = goal;
+      elements.btnFatLoss.setAttribute("aria-pressed", goal === "deficit");
+      elements.btnMaintain.setAttribute("aria-pressed", goal === "maintain");
+      elements.btnBulk.setAttribute("aria-pressed", goal === "bulk");
 
       // Update button styling
       const activeClasses = ['bg-gradient-to-r', 'from-amber-500', 'to-orange-500', 'text-slate-950', 'shadow-md'];
